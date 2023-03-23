@@ -10,13 +10,8 @@ import UIKit
 
 struct QuestionModel {
     let imageName: String
+    let questionText: String
     let answer: Bool
 }
 
-struct QuestionsBrain {
-    
-    var Questions = [QuestionModel(imageName: "tree", answer: true),
-                     QuestionModel(imageName: "car", answer: true),
-                     QuestionModel(imageName: "mug", answer: true)]
-    
-}
+
