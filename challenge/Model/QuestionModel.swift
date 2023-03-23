@@ -9,7 +9,7 @@ import UIKit
 
 
 struct QuestionModel {
-    let imageName: String
+    let image: UIImage
     let questionText: String
     let answer: Bool
 }

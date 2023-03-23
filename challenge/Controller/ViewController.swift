@@ -11,25 +11,6 @@ class ViewController: UIViewController {
     
     // MARK: - Properties
     
-    private var questions = Questions.questions
-    
-    private var questionNumber = 0
-    private var finalScore = 0
-    
-    var gameOver = false {
-        didSet {
-            let alert = UIAlertController(title: "Final Score", message: "\(finalScore) \\ \(questions.count)", preferredStyle: .alert)
-            let action = UIAlertAction(title: "OK", style: .default) { _ in
-                
-                self.questionNumber = 0
-                self.finalScore = 0
-                self.nextQuestion()
-            }
-            alert.addAction(action)
-            present(alert, animated: true)
-        }
-    }
-    
     private let buttonsStack = UIStackView()
     private var imageView = UIImageView()
     
@@ -53,14 +34,17 @@ class ViewController: UIViewController {
         return btn
     }()
     
+    private var questions = Questions()
+
     
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        questions.delegate = self
         style()
         layout()
-        nextQuestion()
+        showQuestion()
     }
     
     
@@ -79,35 +63,22 @@ class ViewController: UIViewController {
     
     // MARK: - Logic Functions
     
-    func checkAnswer(userAnswer: Bool) {
-        let question = questions[questionNumber]
-        if userAnswer == question.answer {
-            finalScore += 1
-            questionNumber += 1
-            showAnswerAlert(title: "Correct!", text: "You got this right!")
-            return
-        }
-        questionNumber += 1
-        showAnswerAlert(title: "Incorrect!", text: "You got this wrong!")
+    func showQuestion() {
+        guard let currentQuestion = questions.showNextQuestion() else { return }
+        imageView.image = currentQuestion.image
+        mainTitle.text = currentQuestion.questionText
     }
     
-    func showAnswerAlert(title: String, text: String) {
-        let alert = UIAlertController(title: title, message: text, preferredStyle: .alert)
-        let action = UIAlertAction(title: "Next question", style: .default) { _ in
-            if self.questionNumber == self.questions.count {
-                self.gameOver.toggle()
-                return
-            }
-            self.nextQuestion()
+    func showAlert(result: Bool) {
+        let title = result   ? "Correct!" : "Incorrect!"
+        let message = result ? "You got this right" : "You got this wrong!"
+        
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let action = UIAlertAction(title: "Next Question", style: .default) { _ in
+            self.showQuestion()
         }
         alert.addAction(action)
         present(alert, animated: true)
-        
-    }
-    
-    func nextQuestion() {
-        imageView.image = UIImage(named: questions[questionNumber].imageName)
-        mainTitle.text = questions[questionNumber].questionText
     }
     
 }
@@ -147,10 +118,28 @@ extension ViewController {
 extension ViewController {
     
     @objc func trueTapped() {
-        checkAnswer(userAnswer: true)
+       let result = questions.checkAnswer(userAnswer: true)
+        showAlert(result: result)
     }
     
     @objc func falseTapped() {
-        checkAnswer(userAnswer: false)
+      let result = questions.checkAnswer(userAnswer: false)
+        showAlert(result: result)
     }
+}
+
+
+extension ViewController: QuestionsDelegate {
+    
+    func showFinalScore() {
+        let alert = UIAlertController(title: "Final Score", message: "\(questions.userScore) \\ \(questions.quiz.count)", preferredStyle: .alert)
+        let action = UIAlertAction(title: "OK", style: .default) { _ in
+            
+            self.showQuestion()
+        }
+        alert.addAction(action)
+        present(alert, animated: true)
+    }
+    
+    
 }
